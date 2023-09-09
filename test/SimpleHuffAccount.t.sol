@@ -4,6 +4,8 @@ pragma solidity ^0.8.15;
 import "foundry-huff/HuffDeployer.sol";
 import "forge-std/Test.sol";
 import "forge-std/console.sol";
+import "account-abstraction/contracts/core/EntryPoint.sol";
+import "solady/utils/ECDSA.sol";
 
 struct UserOperation {
     address sender;
@@ -25,6 +27,7 @@ contract SimpleHuffAccountTest is Test {
     SimpleHuffAccountFactory public simpleHuffAccountFactory;
 
     address entrypointAddress = 0x5FF137D4b0FDCD49DcA30c7CF57E578a026d2789;
+    EntryPoint public entryPoint = EntryPoint(entrypointAddress);
 
     /// @dev Setup the testing environment.
     function setUp() public {
@@ -64,6 +67,9 @@ contract SimpleHuffAccountTest is Test {
             paymasterAndData: "",
             signature: ""
         });
+        bytes32 hash = entryPoint.getUserOpHash(_op);
+        (uint8 v, bytes32 r, bytes32 s) = vm.sign(_key, ECDSA.toEthSignedMessageHash(hash));
+        signature = abi.encodePacked(r, s, v);
         uint256 missingAccountFunds = 420 wei;
         uint256 returnValue = simpleHuffAccount.validateUserOp(userOp, "", missingAccountFunds);
         assertEq(returnValue, 0);
