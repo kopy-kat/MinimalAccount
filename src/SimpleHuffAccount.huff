@@ -45,6 +45,7 @@
 }
 
 #define macro VALIDATE_SIGNATURE() = takes (0) returns (0) {
+    
     0x24 calldataload          // [hash, v, r, s]
 
     // Store in scratch space for hashing.
@@ -77,7 +78,7 @@
         pop pop pop pop 0x00 // [0x00]
     end:
 
-    [OWNER] eq validationFailed jumpi
+    [OWNER_ADDRESS] eq validationFailed jumpi
 
     validationFailed:
         0x01 0x00 mstore

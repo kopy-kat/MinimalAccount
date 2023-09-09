@@ -4,7 +4,7 @@ pragma solidity ^0.8.15;
 import "foundry-huff/HuffDeployer.sol";
 import "forge-std/Test.sol";
 import "forge-std/console.sol";
-import "account-abstraction/contracts/core/EntryPoint.sol";
+import "account-abstraction/core/EntryPoint.sol";
 import "solady/utils/ECDSA.sol";
 
 struct UserOperation {
@@ -29,8 +29,11 @@ contract SimpleHuffAccountTest is Test {
     address entrypointAddress = 0x5FF137D4b0FDCD49DcA30c7CF57E578a026d2789;
     EntryPoint public entryPoint = EntryPoint(entrypointAddress);
 
+    Wallet wallet;
+
     /// @dev Setup the testing environment.
     function setUp() public {
+        wallet = vm.createWallet(uint256(keccak256(bytes("1"))));
         simpleHuffAccount = SimpleHuffAccount(HuffDeployer.deploy("SimpleHuffAccount"));
         simpleHuffAccountFactory = SimpleHuffAccountFactory(HuffDeployer.deploy("SimpleHuffAccountFactory"));
         console.logBytes(address(simpleHuffAccount).code);
@@ -67,9 +70,14 @@ contract SimpleHuffAccountTest is Test {
             paymasterAndData: "",
             signature: ""
         });
+
         bytes32 hash = entryPoint.getUserOpHash(_op);
-        (uint8 v, bytes32 r, bytes32 s) = vm.sign(_key, ECDSA.toEthSignedMessageHash(hash));
+        (uint8 v, bytes32 r, bytes32 s) = vm.sign(wallet.privateKey, ECDSA.toEthSignedMessageHash(hash));
         signature = abi.encodePacked(r, s, v);
+        userOp.signature = signature;
+
+        console.log(wallet.addr);
+
         uint256 missingAccountFunds = 420 wei;
         uint256 returnValue = simpleHuffAccount.validateUserOp(userOp, "", missingAccountFunds);
         assertEq(returnValue, 0);
