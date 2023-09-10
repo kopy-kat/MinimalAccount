@@ -2,7 +2,7 @@
 
 # MinimalAccount
 
-The most gas optimized ERC-4337 account - written in Huff.
+The most gas optimized ERC-4337 account - written in Huff
 
 > **Note**
 >
