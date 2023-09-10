@@ -21,6 +21,8 @@ contract MinimalAccountTest is Test {
 
     Owner owner;
 
+    address bytecodeOwnerAddress = 0x7E5F4552091A69125d5DfCb7b8C2659029395Bdf;
+
     function setUp() public {
         owner = Owner({key: uint256(1), addr: vm.addr(uint256(1))});
         minimalAccount = MinimalAccount(HuffDeployer.deploy("MinimalAccount"));
@@ -32,7 +34,7 @@ contract MinimalAccountTest is Test {
     }
 
     function testCreateAccount() public {
-        address account = minimalAccountFactory.createAccount(address(this), 0);
+        address account = minimalAccountFactory.createAccount(bytecodeOwnerAddress, 0);
         assertEq(address(minimalAccount).code, address(account).code);
     }
 
@@ -69,6 +71,43 @@ contract MinimalAccountTest is Test {
 
         uint256 missingAccountFunds = 420 wei;
         uint256 returnValue = minimalAccount.validateUserOp(userOp, opHash, missingAccountFunds);
+        assertEq(returnValue, 0);
+        assertEq(entrypointAddress.balance, missingAccountFunds);
+        vm.stopPrank();
+    }
+
+    function testValidateUserOpDifferentOwner() public {
+        vm.startPrank(entrypointAddress);
+        uint256 newKey = 2;
+        address newOwner = vm.addr(newKey);
+
+        address account = minimalAccountFactory.createAccount(newOwner, 0);
+        vm.deal(address(account), 1 ether);
+
+        UserOperation memory userOp = UserOperation({
+            sender: minimalAccountFactory.getAddress(newOwner, 0),
+            nonce: 0,
+            initCode: abi.encodePacked(
+                address(minimalAccountFactory),
+                abi.encodeWithSelector(minimalAccountFactory.createAccount.selector, newOwner, 0)
+                ),
+            callData: abi.encodeWithSelector(minimalAccount.execute.selector, address(this), 1 wei, ""),
+            callGasLimit: 0,
+            verificationGasLimit: 0,
+            preVerificationGas: 0,
+            maxFeePerGas: 0,
+            maxPriorityFeePerGas: 0,
+            paymasterAndData: "",
+            signature: ""
+        });
+
+        bytes32 opHash = entryPoint.getUserOpHash(userOp);
+        (uint8 v, bytes32 r, bytes32 s) = vm.sign(newKey, ECDSA.toEthSignedMessageHash(opHash));
+        bytes memory signature = abi.encodePacked(r, s, v);
+        userOp.signature = signature;
+
+        uint256 missingAccountFunds = 420 wei;
+        uint256 returnValue = MinimalAccount(account).validateUserOp(userOp, opHash, missingAccountFunds);
         assertEq(returnValue, 0);
         assertEq(entrypointAddress.balance, missingAccountFunds);
         vm.stopPrank();

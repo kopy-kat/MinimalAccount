@@ -14,7 +14,7 @@ The most gas optimized ERC-4337 account - written in Huff
 
 |                  | Creation | Native transfer | ERC20 transfer | Total  |
 | ---------------- | -------- | --------------- | -------------- | ------ |
-| MinimalAccount   | 243454   | 94023           | 82760          | 420237 |
+| MinimalAccount   | 243481   | 94023           | 82760          | 420264 |
 | SimpleAccount    | 410061   | 97690           | 86754          | 594505 |
 | Biconomy         | 296892   | 100780          | 89577          | 487249 |
 | Etherspot        | 305769   | 100091          | 89172          | 495032 |
@@ -54,7 +54,7 @@ For more information on how to use Foundry, check out the [Foundry Github Reposi
 
 ## Todo
 
-- [ ] Dynamically splice owner account into bytecode
+- [x] Dynamically splice owner account into bytecode
 - [ ] Deploy as minimal clone
 
 ## License
