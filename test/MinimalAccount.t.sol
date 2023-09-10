@@ -7,61 +7,52 @@ import "forge-std/console.sol";
 import "account-abstraction/core/EntryPoint.sol";
 import "solady/utils/ECDSA.sol";
 
-struct UserOperation {
-    address sender;
-    uint256 nonce;
-    bytes initCode;
-    bytes callData;
-    uint256 callGasLimit;
-    uint256 verificationGasLimit;
-    uint256 preVerificationGas;
-    uint256 maxFeePerGas;
-    uint256 maxPriorityFeePerGas;
-    bytes paymasterAndData;
-    bytes signature;
+struct Owner {
+    address addr;
+    uint256 key;
 }
 
-contract SimpleHuffAccountTest is Test {
-    /// @dev Address of the SimpleStore contract.
-    SimpleHuffAccount public simpleHuffAccount;
-    SimpleHuffAccountFactory public simpleHuffAccountFactory;
+contract MinimalAccountTest is Test {
+    MinimalAccount public minimalAccount;
+    MinimalAccountFactory public minimalAccountFactory;
 
     address entrypointAddress = 0x5FF137D4b0FDCD49DcA30c7CF57E578a026d2789;
-    EntryPoint public entryPoint = EntryPoint(entrypointAddress);
+    EntryPoint public entryPoint = new EntryPoint();
 
-    Wallet wallet;
+    Owner owner;
 
-    /// @dev Setup the testing environment.
     function setUp() public {
-        wallet = vm.createWallet(uint256(keccak256(bytes("1"))));
-        simpleHuffAccount = SimpleHuffAccount(HuffDeployer.deploy("SimpleHuffAccount"));
-        simpleHuffAccountFactory = SimpleHuffAccountFactory(HuffDeployer.deploy("SimpleHuffAccountFactory"));
-        console.logBytes(address(simpleHuffAccount).code);
-        console.logBytes(address(simpleHuffAccountFactory).code);
+        owner = Owner({key: uint256(1), addr: vm.addr(uint256(1))});
+        minimalAccount = MinimalAccount(HuffDeployer.deploy("MinimalAccount"));
+        minimalAccountFactory = MinimalAccountFactory(HuffDeployer.deploy("MinimalAccountFactory"));
+
+        // Get bytecode of MinimalAccount and MinimalAccountFactory
+        // console.logBytes(address(MinimalAccount).code);
+        // console.logBytes(address(MinimalAccountFactory).code);
     }
 
     function testCreateAccount() public {
-        address account = simpleHuffAccountFactory.createAccount(address(this), 0);
-        assertEq(address(simpleHuffAccount).code, address(account).code);
+        address account = minimalAccountFactory.createAccount(address(this), 0);
+        assertEq(address(minimalAccount).code, address(account).code);
     }
 
     function testGetAccountAddress() public {
-        address account = simpleHuffAccountFactory.createAccount(address(this), 0);
-        address accountAddress = simpleHuffAccountFactory.getAddress(address(this), 0);
+        address account = minimalAccountFactory.createAccount(address(this), 0);
+        address accountAddress = minimalAccountFactory.getAddress(address(this), 0);
         assertEq(account, accountAddress);
     }
 
     function testValidateUserOp() public {
         vm.startPrank(entrypointAddress);
-        vm.deal(address(simpleHuffAccount), 1 ether);
+        vm.deal(address(minimalAccount), 1 ether);
         UserOperation memory userOp = UserOperation({
-            sender: address(this),
+            sender: minimalAccountFactory.getAddress(address(this), 0),
             nonce: 0,
             initCode: abi.encodePacked(
-                address(simpleHuffAccountFactory),
-                abi.encodeWithSelector(simpleHuffAccountFactory.createAccount.selector, address(this), 0)
+                address(minimalAccountFactory),
+                abi.encodeWithSelector(minimalAccountFactory.createAccount.selector, address(this), 0)
                 ),
-            callData: abi.encodeWithSelector(simpleHuffAccount.execute.selector, address(this), 0, ""),
+            callData: abi.encodeWithSelector(minimalAccount.execute.selector, address(this), 0, ""),
             callGasLimit: 0,
             verificationGasLimit: 0,
             preVerificationGas: 0,
@@ -71,15 +62,13 @@ contract SimpleHuffAccountTest is Test {
             signature: ""
         });
 
-        bytes32 hash = entryPoint.getUserOpHash(_op);
-        (uint8 v, bytes32 r, bytes32 s) = vm.sign(wallet.privateKey, ECDSA.toEthSignedMessageHash(hash));
-        signature = abi.encodePacked(r, s, v);
+        bytes32 opHash = entryPoint.getUserOpHash(userOp);
+        (uint8 v, bytes32 r, bytes32 s) = vm.sign(owner.key, ECDSA.toEthSignedMessageHash(opHash));
+        bytes memory signature = abi.encodePacked(r, s, v);
         userOp.signature = signature;
 
-        console.log(wallet.addr);
-
         uint256 missingAccountFunds = 420 wei;
-        uint256 returnValue = simpleHuffAccount.validateUserOp(userOp, "", missingAccountFunds);
+        uint256 returnValue = minimalAccount.validateUserOp(userOp, opHash, missingAccountFunds);
         assertEq(returnValue, 0);
         assertEq(entrypointAddress.balance, missingAccountFunds);
         vm.stopPrank();
@@ -87,15 +76,15 @@ contract SimpleHuffAccountTest is Test {
 
     function testValidateUserOp__RervertWhen__NotFromEntrypoint() public {
         vm.startPrank(address(0x69));
-        vm.deal(address(simpleHuffAccount), 1 ether);
+        vm.deal(address(minimalAccount), 1 ether);
         UserOperation memory userOp = UserOperation({
             sender: address(this),
             nonce: 0,
             initCode: abi.encodePacked(
-                address(simpleHuffAccountFactory),
-                abi.encodeWithSelector(simpleHuffAccountFactory.createAccount.selector, address(this), 0)
+                address(minimalAccountFactory),
+                abi.encodeWithSelector(minimalAccountFactory.createAccount.selector, address(this), 0)
                 ),
-            callData: abi.encodeWithSelector(simpleHuffAccount.execute.selector, address(this), 0, ""),
+            callData: abi.encodeWithSelector(minimalAccount.execute.selector, address(this), 0, ""),
             callGasLimit: 0,
             verificationGasLimit: 0,
             preVerificationGas: 0,
@@ -106,22 +95,22 @@ contract SimpleHuffAccountTest is Test {
         });
         uint256 missingAccountFunds = 420 wei;
         vm.expectRevert();
-        uint256 returnValue = simpleHuffAccount.validateUserOp(userOp, "", missingAccountFunds);
+        uint256 returnValue = minimalAccount.validateUserOp(userOp, "", missingAccountFunds);
         vm.stopPrank();
     }
 
     function testExecuteValue() public {
         vm.startPrank(entrypointAddress);
-        vm.deal(address(simpleHuffAccount), 2 wei);
-        simpleHuffAccount.execute(address(0x69), 1 wei, "");
+        vm.deal(address(minimalAccount), 2 wei);
+        minimalAccount.execute(address(0x69), 1 wei, "");
         assertEq(address(0x69).balance, 1 wei);
-        assertEq(address(simpleHuffAccount).balance, 1 wei);
+        assertEq(address(minimalAccount).balance, 1 wei);
         vm.stopPrank();
     }
 
     function testExecuteCalldata() public {
         vm.startPrank(entrypointAddress);
-        simpleHuffAccount.execute(
+        minimalAccount.execute(
             address(0x69),
             0,
             abi.encodeWithSignature("transfer(address,address,uint256)", address(0x123456), address(0xdeadbeef), 69)
@@ -132,7 +121,7 @@ contract SimpleHuffAccountTest is Test {
     function testExecute__RevertWhen__NotFromEntrypoint() public {
         vm.startPrank(address(0x69));
         vm.expectRevert();
-        simpleHuffAccount.execute(
+        minimalAccount.execute(
             address(0x69),
             0,
             abi.encodeWithSignature("transfer(address,address,uint256)", address(0x123456), address(0xdeadbeef), 69)
@@ -141,12 +130,12 @@ contract SimpleHuffAccountTest is Test {
     }
 }
 
-interface SimpleHuffAccount {
+interface MinimalAccount {
     function execute(address to, uint256 value, bytes calldata data) external;
     function validateUserOp(UserOperation calldata, bytes32, uint256) external returns (uint256);
 }
 
-interface SimpleHuffAccountFactory {
+interface MinimalAccountFactory {
     function createAccount(address owner, uint256 salt) external returns (address);
     function getAddress(address owner, uint256 salt) external view returns (address);
 }

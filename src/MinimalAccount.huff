@@ -1,15 +1,15 @@
-/// @title SimpleHuffAccount
-/// @notice Gas optimized ECDSA wrapper.
+/// @title MinimalAccount
+/// @notice Gas optimized minimal ERC-4337 account
 /// @author kopy-kat <https://github.com/kopy-kat>
 /// @custom:inspiration SimpleAccount <https://github.com/eth-infinitism/account-abstraction/blob/develop/contracts/samples/SimpleAccount.sol>
 /// @custom:inspiration Huffmate <https://github.com/huff-language/huffmate>
 
 /* Interface */
 #define function execute(address,uint256,bytes) nonpayable returns ()
-#define function validateUserOp(address,uint256,bytes,bytes,uint256,uint256,uint256,uint256,uint256,bytes,bytes,bytes32,uint256) nonpayable returns (uint256)
 
 /* Constants */
 #define constant ENTRYPOINT_ADDRESS = 0x5FF137D4b0FDCD49DcA30c7CF57E578a026d2789
+#define constant OWNER_ADDRESS = 0x7E5F4552091A69125d5DfCb7b8C2659029395Bdf // replaced by the factory
 
 ///@dev The number which `s` must not exceed in order for the signature to be non-malleable
 #define constant MALLEABILITY_THRESHOLD = 0x7fffffffffffffffffffffffffffffff5d576e7357a4501ddfe92f46681b20a0
@@ -24,7 +24,6 @@
     0x00 0x00 revert
 
     fromEntrypoint:
-        
 }
 
 #define macro PAY_PREFUND() = takes (0) returns (0) {
@@ -45,8 +44,18 @@
 }
 
 #define macro VALIDATE_SIGNATURE() = takes (0) returns (0) {
-    
-    0x24 calldataload          // [hash, v, r, s]
+    0x1a4 calldataload       // [sigSlot]
+    0xa4 add                 // [sSlot]
+    dup1 calldataload        // [s, sSlot]
+    swap1                    // [sSlot, s]
+    0x20 swap1 sub           // [rSlot, s]
+    dup1 calldataload        // [r, rSlot, s]
+    swap1                    // [rSlot, r, s]
+    0x40 add                 // [vSlot, r, s]
+    calldataload             // [v, r, s]
+    0xF8 shr
+
+    0x24 calldataload        // [hash, v, r, s]
 
     // Store in scratch space for hashing.
     0x20 mstore              // [v, r, s]
@@ -78,12 +87,12 @@
         pop pop pop pop 0x00 // [0x00]
     end:
 
-    [OWNER_ADDRESS] eq validationFailed jumpi
+    [OWNER_ADDRESS] eq success jumpi
 
-    validationFailed:
-        0x01 0x00 mstore
-        0x20 0x00 return
+    0x01 0x00 mstore
+    0x20 0x00 return
 
+    success:
 }
 
 /* External functions */
@@ -92,7 +101,7 @@
     VALIDATE_SIGNATURE()
     PAY_PREFUND()
 
-    0x20 0x00
+    0x20 0x80
     return
 }
 

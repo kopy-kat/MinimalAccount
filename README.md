@@ -1,36 +1,36 @@
 <img align="right" width="150" height="150" top="100" src="./assets/blueprint.png">
 
-# huff-project-template • [![ci](https://github.com/huff-language/huff-project-template/actions/workflows/ci.yaml/badge.svg)](https://github.com/huff-language/huff-project-template/actions/workflows/ci.yaml) ![license](https://img.shields.io/github/license/huff-language/huff-project-template.svg) ![solidity](https://img.shields.io/badge/solidity-^0.8.15-lightgrey)
+# MinimalAccount
 
-Versatile Huff Project Template using Foundry.
+The most gas optimized ERC-4337 account - written directly in Huff.
 
+> **Note**
+>
+> These contracts are **unaudited** and are not recommended for use in production.
+>
+> The main usage of these contracts is to benchmark other ERC-4337 accounts against the lowest possible gas cost for an account.
 
-## Getting Started
+## Gas calculations (as of Sep 10, 2023)
 
-### Requirements
+|                  | Creation | Native transfer | ERC20 transfer | Total  |
+| ---------------- | -------- | --------------- | -------------- | ------ |
+| MinimalAccount   | 199914   | 90645           | 79382          | 369941 |
+| SimpleAccount    | 410061   | 97690           | 86754          | 594505 |
+| Biconomy         | 296892   | 100780          | 89577          | 487249 |
+| Etherspot        | 305769   | 100091          | 89172          | 495032 |
+| Kernel v2.0      | 366662   | 106800          | 95877          | 569339 |
+| Kernel v2.1      | 291413   | 103240          | 92289          | 486942 |
+| Kernel v2.1-lite | 256965   | 97331           | 86121          | 440417 |
 
-The following will need to be installed in order to use this template. Please follow the links and instructions.
+Calculations are based on ZeroDev's [AA Benchmark](https://github.com/zerodevapp/aa-benchmark)
 
--   [Git](https://git-scm.com/book/en/v2/Getting-Started-Installing-Git)  
-    -   You'll know you've done it right if you can run `git --version`
--   [Foundry / Foundryup](https://github.com/gakonst/foundry)
-    -   This will install `forge`, `cast`, and `anvil`
-    -   You can test you've installed them right by running `forge --version` and get an output like: `forge 0.2.0 (92f8951 2022-08-06T00:09:32.96582Z)`
-    -   To get the latest of each, just run `foundryup`
--   [Huff Compiler](https://docs.huff.sh/get-started/installing/)
-    -   You'll know you've done it right if you can run `huffc --version` and get an output like: `huffc 0.3.0`
+## Using this repo
 
-### Quickstart
-
-1. Clone this repo or use template
-
-Click "Use this template" on [GitHub](https://github.com/huff-language/huff-project-template) to create a new repository with this repo as the initial state.
-
-Or run:
+1. Clone this repo
 
 ```
-git clone https://github.com/huff-language/huff-project-template
-cd huff-project-template
+git clone https://github.com/kopy-kat/MinimalAccount.git
+cd MinimalAccount
 ```
 
 2. Install dependencies
@@ -52,32 +52,15 @@ forge test
 
 For more information on how to use Foundry, check out the [Foundry Github Repository](https://github.com/foundry-rs/foundry/tree/master/forge) and the [foundry-huff library repository](https://github.com/huff-language/foundry-huff).
 
-
-## Blueprint
-
-```ml
-lib
-├─ forge-std — https://github.com/foundry-rs/forge-std
-├─ foundry-huff — https://github.com/huff-language/foundry-huff
-scripts
-├─ Deploy.s.sol — Deployment Script
-src
-├─ SimpleStore — A Simple Storage Contract in Huff
-test
-└─ SimpleStore.t — SimpleStoreTests
-```
-
-
 ## License
 
 [The Unlicense](https://github.com/huff-language/huff-project-template/blob/master/LICENSE)
 
-
 ## Acknowledgements
 
-- [forge-template](https://github.com/foundry-rs/forge-template)
-- [femplate](https://github.com/abigger87/femplate)
-
+- [ERC4337's SimpleAccount](https://github.com/eth-infinitism/account-abstraction/blob/develop/contracts/samples/SimpleAccount.sol)
+- [Huffmate](https://github.com/huff-language/huffmate)
+- [Huff](https://huff.sh)
 
 ## Disclaimer
 
