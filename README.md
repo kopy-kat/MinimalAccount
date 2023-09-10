@@ -52,6 +52,10 @@ forge test
 
 For more information on how to use Foundry, check out the [Foundry Github Repository](https://github.com/foundry-rs/foundry/tree/master/forge) and the [foundry-huff library repository](https://github.com/huff-language/foundry-huff).
 
+## Todo
+
+- [ ] Dynamically splice owner account into bytecode
+
 ## License
 
 [The Unlicense](https://github.com/huff-language/huff-project-template/blob/master/LICENSE)
