@@ -22,6 +22,12 @@ The most gas optimized ERC-4337 account - written in Huff
 | Kernel v2.1      | 291413   | 103240          | 92289          | 486942 |
 | Kernel v2.1-lite | 256965   | 97331           | 86121          | 440417 |
 
+Gas difference between MinimalAccount and cheapest account in each category:
+
+|               | Creation | Native transfer | ERC20 transfer | Total |
+| ------------- | -------- | --------------- | -------------- | ----- |
+| MA cheaper by | 13484    | 3308            | 3361           | 20153 |
+
 Calculations are based on ZeroDev's [AA Benchmark](https://github.com/zerodevapp/aa-benchmark)
 
 ## Using this repo
