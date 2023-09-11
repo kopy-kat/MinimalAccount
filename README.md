@@ -61,7 +61,6 @@ For more information on how to use Foundry, check out the [Foundry Github Reposi
 ## Todo
 
 - [x] Dynamically splice owner account into bytecode
-- [ ] Deploy as minimal clone
 
 ## License
 
