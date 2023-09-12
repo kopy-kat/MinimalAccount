@@ -29,8 +29,8 @@ contract MinimalAccountTest is Test {
         minimalAccountFactory = MinimalAccountFactory(HuffDeployer.deploy("MinimalAccountFactory"));
 
         // Get bytecode of MinimalAccount and MinimalAccountFactory for gas calculations
-        // console.logBytes(address(minimalAccount).code);
-        // console.logBytes(address(minimalAccountFactory).code);
+        console.logBytes(address(minimalAccount).code);
+        console.logBytes(address(minimalAccountFactory).code);
     }
 
     function testCreateAccount() public {

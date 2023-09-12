@@ -17,33 +17,12 @@
 ///@dev Ethereum Signed Message header
 #define constant SIG_HEADER = 0x0000000019457468657265756d205369676e6564204d6573736167653a0a3332
 
-/* Helpers */
-#define macro REQUIRE_FROM_ENTRYPOINT() = takes (0) returns (0) {
-    caller [ENTRYPOINT_ADDRESS] eq fromEntrypoint jumpi
-
-    0x00 0x00 revert
-
-    fromEntrypoint:
-}
-
-#define macro PAY_PREFUND() = takes (0) returns (0) {
-    0x44 calldataload           // [value]
-    dup1                        // [value, value]
-    0x00 eq noPrefund jumpi     // [value]
-
-    0x00                        // [retOffset, value]
-    0x00                        // [retSize, retOffset, value]
-    0x00                        // [argSize, retOffset, retSize, value]
-    0x00                        // [argOffset, argSize, retOffset, retSize, value]
-    swap4                       // [value, argOffset, argSize, retOffset, retSize]
-    caller                      // [target, value, argOffset, argSize, retOffset, retSize]
-    gas                         // [gas, target, value, argOffset, argSize, retOffset, retSize]
-    call                        // [success]
-
-    noPrefund:
-}
-
-#define macro VALIDATE_SIGNATURE() = takes (0) returns (0) {
+/* External functions */
+#define macro VALIDATE_USEROP() = takes (0) returns (0) {
+    // 1. Require from entrypoint
+    caller [ENTRYPOINT_ADDRESS] eq iszero notEntryPoint jumpi
+    
+    // 2. Validate signature
     0x1a4 calldataload       // [sigSlot]
     0xa4 add                 // [sSlot]
     dup1 calldataload        // [s, sSlot]
@@ -67,7 +46,7 @@
     // jump to `zero`.
     [MALLEABILITY_THRESHOLD] // [malleability_threshold, hash, v, r, s]
     dup5 gt                  // [s > malleability_threshold, hash, v, r, s]
-    zero jumpi               // [hash, v, r, s]
+    invalidSignature jumpi   // [hash, v, r, s]
 
     0x00 mstore              // [v, r, s]
     0x20 mstore              // [r, s]
@@ -77,37 +56,43 @@
     0x20 0x40 0x80 0x00 0x01 // [0x01, 0x00, 0x80, 0x40, 0x20]
     gas staticcall pop       // []
 
-    // Restore the zero slot
-    0x00 0x60 mstore         // []
     returndatasize 0x60 sub  // [0x60 - returndatasize]
     mload                    // [result]
-    end jump
 
-    zero:
-        pop pop pop pop 0x00 // [0x00]
-    end:
+    [OWNER_ADDRESS] eq iszero invalidSignature jumpi
 
-    [OWNER_ADDRESS] eq success jumpi
+    // 3. Pay prefund
+    0x44 calldataload           // [value]
+    dup1                        // [value, value]
+    iszero noPrefund jumpi      // [value]
 
-    0x01 0x00 mstore
-    0x20 0x00 return
+    0x00                        // [retOffset, value]
+    0x00                        // [retSize, retOffset, value]
+    0x00                        // [argSize, retOffset, retSize, value]
+    0x00                        // [argOffset, argSize, retOffset, retSize, value]
+    swap4                       // [value, argOffset, argSize, retOffset, retSize]
+    caller                      // [target, value, argOffset, argSize, retOffset, retSize]
+    gas                         // [gas, target, value, argOffset, argSize, retOffset, retSize]
+    call                        // [success]
 
-    success:
-}
-
-/* External functions */
-#define macro VALIDATE_USEROP() = takes (0) returns (0) {
-    REQUIRE_FROM_ENTRYPOINT()
-    VALIDATE_SIGNATURE()
-    PAY_PREFUND()
+    noPrefund:
 
     0x20 0x80
     return
+
+    invalidSignature:
+        0x01 0x00 mstore
+        0x20 0x00 return
+
+    notEntryPoint:
+        0x00 0x00 revert
 }
 
 #define macro EXECUTE() = takes (0) returns (0) {
-    REQUIRE_FROM_ENTRYPOINT()
+    // 1. Require from entrypoint
+    caller [ENTRYPOINT_ADDRESS] eq iszero notEntryPoint jumpi
 
+    // 2. Execute call
     0x64 calldataload           // [argSize]
     dup1                        // [argSize, argSize]
     0x84                        // [offset, argSize, argSize]
@@ -122,6 +107,11 @@
     0x04 calldataload           // [target, value, argOffset, argSize, retOffset, retSize]
     gas                         // [gas, target, value, argOffset, argSize, retOffset, retSize]
     call                        // [success]
+
+    stop
+
+    notEntryPoint:
+        0x00 0x00 revert
 }
 
 #define macro MAIN() = takes (0) returns (0) {

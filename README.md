@@ -10,11 +10,11 @@ The most gas optimized ERC-4337 account - written in Huff
 >
 > The main usage of these contracts is to benchmark other ERC-4337 accounts against the lowest possible gas cost for an account.
 
-## Gas calculations (as of Sep 10, 2023)
+## Gas calculations (as of Sep 12, 2023)
 
 |                  | Creation | Native transfer | ERC20 transfer | Total  |
 | ---------------- | -------- | --------------- | -------------- | ------ |
-| MinimalAccount   | 243481   | 94023           | 82760          | 420264 |
+| MinimalAccount   | 236573   | 93580           | 82317          | 412470 |
 | SimpleAccount    | 410061   | 97690           | 86754          | 594505 |
 | Biconomy         | 296892   | 100780          | 89577          | 487249 |
 | Etherspot        | 305769   | 100091          | 89172          | 495032 |
@@ -26,7 +26,7 @@ Gas difference between MinimalAccount and cheapest account in each category:
 
 |               | Creation | Native transfer | ERC20 transfer | Total |
 | ------------- | -------- | --------------- | -------------- | ----- |
-| MA cheaper by | 13484    | 3308            | 3361           | 20153 |
+| MA cheaper by | 20392    | 3751            | 3804           | 27947 |
 
 Calculations are based on ZeroDev's [AA Benchmark](https://github.com/zerodevapp/aa-benchmark)
 
@@ -61,6 +61,7 @@ For more information on how to use Foundry, check out the [Foundry Github Reposi
 ## Todo
 
 - [x] Dynamically splice owner account into bytecode
+- [x] Remove unnecessary jumps
 
 ## License
 
