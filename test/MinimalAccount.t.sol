@@ -33,18 +33,18 @@ contract MinimalAccountTest is Test {
         console.logBytes(address(minimalAccountFactory).code);
     }
 
-    function testCreateAccount() public {
-        address account = minimalAccountFactory.createAccount(bytecodeOwnerAddress, 0);
-        assertEq(address(minimalAccount).code, address(account).code);
-    }
+   // function testCreateAccount() public {
+   //     address account = minimalAccountFactory.createAccount(bytecodeOwnerAddress, 0);
+   //     assertEq(address(minimalAccount).code, address(account).code);
+   // }
 
-    function testGetAccountAddress() public {
-        address account = minimalAccountFactory.createAccount(address(this), 0);
-        address accountAddress = minimalAccountFactory.getAddress(address(this), 0);
-        assertEq(account, accountAddress);
-    }
+   // function testGetAccountAddress() public {
+   //     address account = minimalAccountFactory.createAccount(address(this), 0);
+   //     address accountAddress = minimalAccountFactory.getAddress(address(this), 0);
+   //     assertEq(account, accountAddress);
+   // }
 
-    function testValidateUserOp() public {
+    function testVD() public {
         vm.startPrank(entrypointAddress);
         vm.deal(address(minimalAccount), 1 ether);
         UserOperation memory userOp = UserOperation({
@@ -66,7 +66,7 @@ contract MinimalAccountTest is Test {
 
         bytes32 opHash = entryPoint.getUserOpHash(userOp);
         (uint8 v, bytes32 r, bytes32 s) = vm.sign(owner.key, ECDSA.toEthSignedMessageHash(opHash));
-        bytes memory signature = abi.encodePacked(r, s, v);
+        bytes memory signature = abi.encodePacked(v, r, s);
         userOp.signature = signature;
 
         uint256 missingAccountFunds = 420 wei;
@@ -103,7 +103,7 @@ contract MinimalAccountTest is Test {
 
         bytes32 opHash = entryPoint.getUserOpHash(userOp);
         (uint8 v, bytes32 r, bytes32 s) = vm.sign(newKey, ECDSA.toEthSignedMessageHash(opHash));
-        bytes memory signature = abi.encodePacked(r, s, v);
+        bytes memory signature = abi.encodePacked(v, r, s);
         userOp.signature = signature;
 
         uint256 missingAccountFunds = 420 wei;

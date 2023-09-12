@@ -21,39 +21,46 @@
 #define macro VALIDATE_USEROP() = takes (0) returns (0) {
     // 1. Require from entrypoint
     caller [ENTRYPOINT_ADDRESS] eq iszero notEntryPoint jumpi
-    
-    // 2. Validate signature
-    0x1a4 calldataload       // [sigSlot]
-    0xa4 add                 // [sSlot]
-    dup1 calldataload        // [s, sSlot]
-    swap1                    // [sSlot, s]
-    0x20 swap1 sub           // [rSlot, s]
-    dup1 calldataload        // [r, rSlot, s]
-    swap1                    // [rSlot, r, s]
-    0x40 add                 // [vSlot, r, s]
-    calldataload             // [v, r, s]
-    0xF8 shr
 
-    0x24 calldataload        // [hash, v, r, s]
+    // 2
+    // mstore userOpHash to scratch space
+    0x20                     // [0x20]
+    dup1                     // [hashSize, 0x20]
+    0x24                     // [hashOffset, hashSize, 0x20]
+    dup2                     // [hashMemOffset, hashOffset, hashSize, 0x20]
+    calldatacopy             // [0x20]
+    // mstore SIG_HEADER to scratch space
+    [SIG_HEADER] 0x00 mstore // [0x20]
+    // mstore newHash to 0x00
+    0x3c 0x04 sha3           // [newHash, 0x20]
+    0x00                     // [0x00, newHash, 0x20]
+    mstore                   // [0x20]
+    // reset 0x20
+    0x00                     // [0x00, 0x20]
+    dup2                     // [0x20, 0x00, 0x20]
+    mstore                   // [0x20]
 
-    // Store in scratch space for hashing.
-    0x20 mstore              // [v, r, s]
-    [SIG_HEADER] 0x00 mstore // [v, r, s]
-
-    0x3c 0x04 sha3           // [newHash, v, r, s]
-
+    // signature verification
+    // get sSlot to verify s value 
+    0x41                     // [0x41, 0x20]
+    0x1a4 calldataload       // [sigSlot, 0x41, 0x20]
+    0xa5 add                 // [sSlot, 0x41, 0x20]
     // If `s` is not in lower half order, such that the signature is malleable,
     // jump to `zero`.
-    [MALLEABILITY_THRESHOLD] // [malleability_threshold, hash, v, r, s]
-    dup5 gt                  // [s > malleability_threshold, hash, v, r, s]
-    invalidSignature jumpi   // [hash, v, r, s]
+    dup1 calldataload        // [s, sSlot, 0x41, 0x20]
+    [MALLEABILITY_THRESHOLD] // [malleability_threshold, s, sSlot, 0x41, 0x20]
+    swap1                    // [s, malleability_threshold, sSlot, 0x41, 0x20]
+    gt                       // [s > malleability_threshold, sSlot, 0x41, 0x20]
+    invalidSignature jumpi   // [sSlot, 0x41, 0x20]
 
-    0x00 mstore              // [v, r, s]
-    0x20 mstore              // [r, s]
-    0x40 mstore              // [s]
-    0x60 mstore              // []
+    // mstore signature(v,r,s) to 0x3f
+    0x21                     // [0x21, sSlot, 0x41, 0x20]
+    swap1                    // [sSlot, 0x21, 0x41, 0x20]
+    sub                      // [vSlot, 0x41, 0x20]
+    0x3f                     // [0x3f, vSlot, 0x41, 0x20]
+    calldatacopy             // [0x20]
 
-    0x20 0x40 0x80 0x00 0x01 // [0x01, 0x00, 0x80, 0x40, 0x20]
+    0x40 0x80 0x00 0x01 // [0x01, 0x00, 0x80, 0x40, 0x20]
     gas staticcall pop       // []
 
     returndatasize 0x60 sub  // [0x60 - returndatasize]
@@ -96,13 +103,13 @@
     0x64 calldataload           // [argSize]
     dup1                        // [argSize, argSize]
     0x84                        // [offset, argSize, argSize]
-    0x00                        // [destOffset, offset, argSize, argSize]
+    callvalue                   // [destOffset, offset, argSize, argSize]
     calldatacopy                // [argSize]
 
-    0x00                        // [retOffset, argSize]
+    callvalue                   // [retOffset, argSize]
     0x20                        // [retSize, retOffset, argSize]
     swap2                       // [argSize, retOffset, retSize]
-    0x00                        // [argOffset, argSize, retOffset, retSize]
+    callvalue                        // [argOffset, argSize, retOffset, retSize]
     0x24 calldataload           // [value, argOffset, argSize, retOffset, retSize]
     0x04 calldataload           // [target, value, argOffset, argSize, retOffset, retSize]
     gas                         // [gas, target, value, argOffset, argSize, retOffset, retSize]
@@ -119,7 +126,7 @@
     dup1 0x3a871cdd eq validate jumpi
     dup1 __FUNC_SIG(execute) eq execute jumpi
 
-    0x00 0x00 revert
+    stop
 
     validate:
         VALIDATE_USEROP()
