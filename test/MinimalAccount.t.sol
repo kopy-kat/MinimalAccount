@@ -33,10 +33,10 @@ contract MinimalAccountTest is Test {
         console.logBytes(address(minimalAccountFactory).code);
     }
 
-   // function testCreateAccount() public {
-   //     address account = minimalAccountFactory.createAccount(bytecodeOwnerAddress, 0);
-   //     assertEq(address(minimalAccount).code, address(account).code);
-   // }
+    function testCreateAccount() public {
+        address account = minimalAccountFactory.createAccount(bytecodeOwnerAddress, 0);
+        assertEq(address(minimalAccount).code, address(account).code);
+    }
 
    // function testGetAccountAddress() public {
    //     address account = minimalAccountFactory.createAccount(address(this), 0);
