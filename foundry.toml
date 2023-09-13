@@ -1,6 +1,6 @@
 
 [profile.default]
-solc_version = '0.8.19'
+solc_version = '0.8.20'
 evm_version = 'paris'
 auto_detect_solc = false
 optimizer = true
