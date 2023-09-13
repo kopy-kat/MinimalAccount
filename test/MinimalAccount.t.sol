@@ -26,7 +26,7 @@ contract MinimalAccountTest is Test {
     function setUp() public {
         owner = Owner({key: uint256(1), addr: vm.addr(uint256(1))});
         minimalAccount = MinimalAccount(HuffDeployer.deploy("MinimalAccount"));
-        minimalAccountFactory = MinimalAccountFactory(HuffDeployer.deploy("MinimalAccountFactory"));
+        minimalAccountFactory = MinimalAccountFactory(HuffDeployer.config().with_evm_version("paris").deploy("MinimalAccountFactory"));
 
         // Get bytecode of MinimalAccount and MinimalAccountFactory for gas calculations
         console.logBytes(address(minimalAccount).code);
@@ -36,6 +36,12 @@ contract MinimalAccountTest is Test {
     function testCreateAccount() public {
         address account = minimalAccountFactory.createAccount(bytecodeOwnerAddress, 0);
         assertEq(address(minimalAccount).code, address(account).code);
+    }
+
+    function testReceiveETH() public {
+        address account = minimalAccountFactory.createAccount(address(this), 0);
+        (bool success, ) = account.call{value:1e18}("");
+        assertTrue(success);
     }
 
     function testGetAccountAddress() public {
@@ -66,7 +72,7 @@ contract MinimalAccountTest is Test {
 
         bytes32 opHash = entryPoint.getUserOpHash(userOp);
         (uint8 v, bytes32 r, bytes32 s) = vm.sign(owner.key, ECDSA.toEthSignedMessageHash(opHash));
-        bytes memory signature = abi.encodePacked(r, s, v);
+        bytes memory signature = abi.encodePacked(v, r, s);
         userOp.signature = signature;
 
         uint256 missingAccountFunds = 420 wei;
@@ -103,7 +109,7 @@ contract MinimalAccountTest is Test {
 
         bytes32 opHash = entryPoint.getUserOpHash(userOp);
         (uint8 v, bytes32 r, bytes32 s) = vm.sign(newKey, ECDSA.toEthSignedMessageHash(opHash));
-        bytes memory signature = abi.encodePacked(r, s, v);
+        bytes memory signature = abi.encodePacked(v, r, s);
         userOp.signature = signature;
 
         uint256 missingAccountFunds = 420 wei;
