@@ -38,13 +38,13 @@ contract MinimalAccountTest is Test {
         assertEq(address(minimalAccount).code, address(account).code);
     }
 
-   // function testGetAccountAddress() public {
-   //     address account = minimalAccountFactory.createAccount(address(this), 0);
-   //     address accountAddress = minimalAccountFactory.getAddress(address(this), 0);
-   //     assertEq(account, accountAddress);
-   // }
+    function testGetAccountAddress() public {
+        address account = minimalAccountFactory.createAccount(address(this), 0);
+        address accountAddress = minimalAccountFactory.getAddress(address(this), 0);
+        assertEq(account, accountAddress);
+    }
 
-    function testVD() public {
+    function testValidateUserOp() public {
         vm.startPrank(entrypointAddress);
         vm.deal(address(minimalAccount), 1 ether);
         UserOperation memory userOp = UserOperation({
