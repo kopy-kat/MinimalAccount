@@ -14,7 +14,7 @@ The most gas optimized ERC-4337 account - written in Huff
 
 |                  | Creation | Native transfer | ERC20 transfer | Total  |
 | ---------------- | -------- | --------------- | -------------- | ------ |
-| MinimalAccount   | 236573   | 93580           | 82317          | 412470 |
+| MinimalAccount   | 220508   | 93545           | 82282          | 396335 |
 | SimpleAccount    | 410061   | 97690           | 86754          | 594505 |
 | Biconomy         | 296892   | 100780          | 89577          | 487249 |
 | Etherspot        | 305769   | 100091          | 89172          | 495032 |
@@ -26,7 +26,7 @@ Gas difference between MinimalAccount and cheapest account in each category:
 
 |               | Creation | Native transfer | ERC20 transfer | Total |
 | ------------- | -------- | --------------- | -------------- | ----- |
-| MA cheaper by | 20392    | 3751            | 3804           | 27947 |
+| MA cheaper by | 36457    | 3786            | 3839           | 44082 |
 
 Calculations are based on ZeroDev's [AA Benchmark](https://github.com/zerodevapp/aa-benchmark)
 
