@@ -26,7 +26,7 @@ contract MinimalAccountTest is Test {
     function setUp() public {
         owner = Owner({key: uint256(1), addr: vm.addr(uint256(1))});
         minimalAccount = MinimalAccount(HuffDeployer.deploy("MinimalAccount"));
-        minimalAccountFactory = MinimalAccountFactory(HuffDeployer.deploy("MinimalAccountFactory"));
+        minimalAccountFactory = MinimalAccountFactory(HuffDeployer.config().with_evm_version("paris").deploy("MinimalAccountFactory"));
 
         // Get bytecode of MinimalAccount and MinimalAccountFactory for gas calculations
         console.logBytes(address(minimalAccount).code);
