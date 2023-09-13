@@ -38,6 +38,12 @@ contract MinimalAccountTest is Test {
         assertEq(address(minimalAccount).code, address(account).code);
     }
 
+    function testReceiveETH() public {
+        address account = minimalAccountFactory.createAccount(address(this), 0);
+        (bool success, ) = account.call{value:1e18}("");
+        assertTrue(success);
+    }
+
     function testGetAccountAddress() public {
         address account = minimalAccountFactory.createAccount(address(this), 0);
         address accountAddress = minimalAccountFactory.getAddress(address(this), 0);
