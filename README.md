@@ -63,6 +63,7 @@ For more information on how to use Foundry, check out the [Foundry Github Reposi
 - [x] Dynamically splice owner account into bytecode
 - [x] Remove unnecessary jumps
 - [ ] Upgrade to Solidity 0.8.20 and replace push1 0x00 with push0
+- [ ] Implement executeBatch
 
 ## License
 
