@@ -41,60 +41,62 @@
 
     validate:
         // mstore userOpHash to scratch space
-        0x40
-        0x20                     // [0x20]
-        dup1                     // [hashSize, 0x20]
-        0x24                     // [hashOffset, hashSize, 0x20]
-        dup2                     // [hashMemOffset, hashOffset, hashSize, 0x20]
-        calldatacopy             // [0x20]
+        0x01                     // [0x01]
+        0x40                     // [0x40, 0x01]
+        0x20                     // [0x20, 0x40, 0x01]
+        dup1                     // [hashSize, 0x20, 0x40, 0x01]
+        0x24                     // [hashOffset, hashSize, 0x20, 0x40, 0x01]
+        dup2                     // [hashMemOffset, hashOffset, hashSize, 0x20, 0x40, 0x01]
+        calldatacopy             // [0x20, 0x40, 0x01]
         // mstore SIG_HEADER to scratch space
-        [SIG_HEADER] callvalue mstore // [0x20]
+        [SIG_HEADER] callvalue mstore // [0x20, 0x40, 0x01]
         // mstore newHash to callvalue
-        0x3c 0x04 sha3           // [newHash, 0x20]
-        callvalue                     // [0x00, newHash, 0x20]
-        mstore                   // [0x20]
+        0x3c 0x04 sha3           // [newHash, 0x20, 0x40, 0x01]
+        callvalue                     // [0x00, newHash, 0x20, 0x40, 0x01]
+        mstore                   // [0x20, 0x40, 0x01]
         // reset 0x20
-        callvalue                     // [0x00, 0x20]
-        dup2                     // [0x20, 0x00, 0x20]
-        mstore                   // [0x20]
+        callvalue                     // [0x00, 0x20, 0x40, 0x01]
+        dup2                     // [0x20, 0x00, 0x20, 0x40, 0x01]
+        mstore                   // [0x20, 0x40, 0x01]
 
         // signature verification
         // get sSlot to verify s value 
-        0x41                     // [0x41, 0x20]
-        0x21                     // [0x21, 0x41, 0x20]
-        0x1a4 calldataload       // [sigSlot, 0x21, 0x41, 0x20]
-        0xa5 add                 // [sSlot, 0x21, 0x41, 0x20]
+        0x41                     // [0x41, 0x20, 0x40, 0x01]
+        0x21                     // [0x21, 0x41, 0x20, 0x40, 0x01]
+        0x1a4 calldataload       // [sigSlot, 0x21, 0x41, 0x20, 0x40, 0x01]
+        0xa5 add                 // [sSlot, 0x21, 0x41, 0x20, 0x40, 0x01]
         // If `s` is not in lower half order, such that the signature is malleable,
         // jump to `zero`.
-        [MALLEABILITY_THRESHOLD] // [malleability_threshold,  sSlot, 0x21, 0x41, 0x20]
-        dup2 calldataload        // [s, malleability_threshold, sSlot, 0x21, 0x41, 0x20]
-        gt                       // [s > malleability_threshold, sSlot, 0x21, 0x41, 0x20]
-        invalidSignature jumpi   // [sSlot, 0x21, 0x41, 0x20]
+        [MALLEABILITY_THRESHOLD] // [malleability_threshold,  sSlot, 0x21, 0x41, 0x20, 0x40, 0x01]
+        dup2 calldataload        // [s, malleability_threshold, sSlot, 0x21, 0x41, 0x20, 0x40, 0x01]
+        gt                       // [s > malleability_threshold, sSlot, 0x21, 0x41, 0x20, 0x40, 0x01]
+        invalidSignature jumpi   // [sSlot, 0x21, 0x41, 0x20, 0x40, 0x01]
 
         // mstore signature(v,r,s) to 0x3f
-        sub                      // [vSlot, 0x41, 0x20]
-        0x3f                     // [0x3f, vSlot, 0x41, 0x20]
-        calldatacopy             // [0x20]
+        sub                      // [vSlot, 0x41, 0x20, 0x40, 0x01]
+        0x3f                     // [0x3f, vSlot, 0x41, 0x20, 0x40, 0x01]
+        calldatacopy             // [0x20, 0x40, 0x01]
 
-        dup2 0x80 callvalue 0x01      // [0x01, 0x00, 0x80, 0x40, 0x20]
-        gas staticcall pop       // []
+        dup2 0x80 callvalue dup6      // [0x01, 0x00, 0x80, 0x40, 0x20, 0x40, 0x01]
+        gas staticcall pop       // [0x01]
 
-        mload                    // [result]
+        mload                    // [result, 0x01]
 
-        [OWNER_ADDRESS] eq iszero invalidSignature jumpi // []
+        [OWNER_ADDRESS] eq iszero invalidSignature jumpi // [0x01]
 
         // 3. Pay prefund
-        0x44 calldataload           // [value]
-        dup1                        // [value, value]
-        iszero finish jumpi      // [value]
+        0x44 calldataload           // [value, 0x01]
+        dup1                        // [value, value, 0x01]
+        iszero finish jumpi      // [value, 0x01]
 
-        callvalue                        // [retOffset, value]
-        callvalue                        // [retSize, retOffset, value]
-        callvalue                        // [argSize, retOffset, retSize, value]
-        callvalue                        // [argOffset, argSize, retOffset, retSize, value]
-        swap4                       // [value, argOffset, argSize, retOffset, retSize]
-        caller                      // [target, value, argOffset, argSize, retOffset, retSize]
-        gas                         // [gas, target, value, argOffset, argSize, retOffset, retSize]
+        add                              // [value + 1]
+        callvalue                        // [retOffset, value + 1]
+        callvalue                        // [retSize, retOffset, value + 1]
+        callvalue                        // [argSize, retOffset, retSize, value + 1]
+        callvalue                        // [argOffset, argSize, retOffset, retSize, value + 1]
+        swap4                       // [value + 1, argOffset, argSize, retOffset, retSize]
+        caller                      // [target, value + 1, argOffset, argSize, retOffset, retSize]
+        gas                         // [gas, target, value + 1, argOffset, argSize, retOffset, retSize]
         call                        // [success]
 
     finish:                  // [value, 0x20]
