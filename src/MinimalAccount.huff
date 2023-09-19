@@ -15,47 +15,50 @@
 #define constant MALLEABILITY_THRESHOLD = 0x7fffffffffffffffffffffffffffffff5d576e7357a4501ddfe92f46681b20a0
 
 ///@dev Ethereum Signed Message header
-#define constant SIG_HEADER = 0x0000000019457468657265756d205369676e6564204d6573736167653a0a3332
+#define constant SIG_HEADER = 0x19457468657265756d205369676e6564204d6573736167653a0a333200000000
 
 #define macro MAIN() = takes (0) returns (0) {
     calldatasize iszero finish jumpi
+    
     // check entrypoint
     caller [ENTRYPOINT_ADDRESS] eq iszero revertError jumpi
     0x00 calldataload 0xE0 shr
     0x3a871cdd eq validate jumpi
-    //__FUNC_SIG(execute) eq iszero revertError jumpi *assume it will always be execute
 
-    0x20                        // [retSize]
-    0x00                   // [retOffset, retSize]
-    0x64 calldataload           // [argSize, retOffset, retSize]
+    0x00                        // [retSize]
+    0x00                        // [retOffset, retSize]
+    0x60 calldataload           // [argSize, retOffset, retSize]
     dup1                        // [argSize, argSize, retOffset, retSize]
-    0x84                        // [offset, argSize, argSize, retOffset, retSize]
-    0x00                   // [destOffset, offset, argSize, argSize, retOffset, retSize]
+    0x80                        // [offset, argSize, argSize, retOffset, retSize]
+    0x00                        // [destOffset, offset, argSize, argSize, retOffset, retSize]
     calldatacopy                // [argSize, retOffset, retSize]
-    0x00                   // [argOffset, argSize, retOffset, retSize]
-    0x24 calldataload           // [value, argOffset, argSize, retOffset, retSize]
-    0x04 calldataload           // [target, value, argOffset, argSize, retOffset, retSize]
+    0x00                        // [argOffset, argSize, retOffset, retSize]
+    0x20 calldataload           // [value, argOffset, argSize, retOffset, retSize]
+    0x00 calldataload           // [target, value, argOffset, argSize, retOffset, retSize]
     gas                         // [gas, target, value, argOffset, argSize, retOffset, retSize]
     call                        // [success]
     stop
 
     validate:
-        // mstore userOpHash to scratch space
-        0x40
-        0x20                     // [0x20]
-        dup1                     // [hashSize, 0x20]
-        0x24                     // [hashOffset, hashSize, 0x20]
-        dup2                     // [hashMemOffset, hashOffset, hashSize, 0x20]
-        calldatacopy             // [0x20]
         // mstore SIG_HEADER to scratch space
         [SIG_HEADER] 0x00 mstore // [0x20]
+
+        // mstore userOpHash to scratch space
+        0x20
+        0x20                     // [0x20]
+        0x20                     // [hashSize, 0x20]
+        0x24                     // [hashOffset, hashSize, 0x20]
+        0x1c                     // [hashMemOffset, hashOffset, hashSize, 0x20]
+        calldatacopy             // [0x20]
+        
         // mstore newHash to 0x00
-        0x3c 0x04 sha3           // [newHash, 0x20]
+        0x3c 0x00 sha3           // [newHash, 0x20]
         0x00                     // [0x00, newHash, 0x20]
         mstore                   // [0x20]
+
         // reset 0x20
         0x00                     // [0x00, 0x20]
-        dup2                     // [0x20, 0x00, 0x20]
+        0x20                     // [0x20, 0x00, 0x20]
         mstore                   // [0x20]
 
         // signature verification
@@ -76,17 +79,19 @@
         0x3f                     // [0x3f, vSlot, 0x41, 0x20]
         calldatacopy             // [0x20]
 
-        dup2 0x80 0x00 0x01      // [0x01, 0x00, 0x80, 0x40, 0x20]
+
+        0x20 0x80 0x00 0x01      // [0x01, 0x00, 0x80, 0x40, 0x20]
         gas staticcall pop       // []
 
         mload                    // [result]
+
 
         [OWNER_ADDRESS] eq iszero invalidSignature jumpi // []
 
         // 3. Pay prefund
         0x44 calldataload           // [value]
         dup1                        // [value, value]
-        iszero finish jumpi      // [value]
+        iszero finish jumpi         // [value]
 
         0x00                        // [retOffset, value]
         0x00                        // [retSize, retOffset, value]
@@ -97,8 +102,8 @@
         gas                         // [gas, target, value, argOffset, argSize, retOffset, retSize]
         call                        // [success]
 
-    finish:                  // [value, 0x20]
-        0x20 0x80                 
+    finish:                         // [value, 0x20]
+        0x20 0x80            
         return
     invalidSignature:
         0x01 0x00 mstore

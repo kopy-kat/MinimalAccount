@@ -14,7 +14,7 @@ The most gas optimized ERC-4337 account - written in Huff
 
 |                  | Creation | Native transfer | ERC20 transfer | Total  |
 | ---------------- | -------- | --------------- | -------------- | ------ |
-| MinimalAccount   | 220508   | 93545           | 82282          | 396335 |
+| MinimalAccount   | 221508   | 93430           | 82169          | 397107 |
 | SimpleAccount    | 410061   | 97690           | 86754          | 594505 |
 | Biconomy         | 296892   | 100780          | 89577          | 487249 |
 | Etherspot        | 305769   | 100091          | 89172          | 495032 |
@@ -26,7 +26,7 @@ Gas difference between MinimalAccount and cheapest account in each category:
 
 |               | Creation | Native transfer | ERC20 transfer | Total |
 | ------------- | -------- | --------------- | -------------- | ----- |
-| MA cheaper by | 36457    | 3786            | 3839           | 44082 |
+| MA cheaper by | 35457    | 3901            | 3952           | 43310 |
 
 Calculations are based on ZeroDev's [AA Benchmark](https://github.com/zerodevapp/aa-benchmark)
 
@@ -62,7 +62,7 @@ For more information on how to use Foundry, check out the [Foundry Github Reposi
 
 - [x] Dynamically splice owner account into bytecode
 - [x] Remove unnecessary jumps
-- [ ] Upgrade to Solidity 0.8.20 and replace push1 0x00 with push0
+- [x] Upgrade to Solidity 0.8.20 and replace push1 0x00 with push0
 - [ ] Implement executeBatch
 
 ## License
