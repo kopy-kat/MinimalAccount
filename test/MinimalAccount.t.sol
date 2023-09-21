@@ -26,12 +26,10 @@ contract MinimalAccountTest is Test {
     function setUp() public {
         owner = Owner({key: uint256(1), addr: vm.addr(uint256(1))});
         minimalAccount = MinimalAccount(HuffDeployer.deploy("MinimalAccount"));
-        minimalAccountFactory =
-            MinimalAccountFactory(HuffDeployer.config().with_evm_version("paris").deploy("MinimalAccountFactory"));
+        minimalAccountFactory = MinimalAccountFactory(HuffDeployer.config().deploy("MinimalAccountFactory"));
 
         // Get bytecode of MinimalAccount and MinimalAccountFactory for gas calculations
-        // console.logBytes(address(minimalAccount).code);
-        console.logBytes(address(minimalAccountFactory).code);
+        // console.logBytes(address(minimalAccountFactory).code);
     }
 
     function testCreateAccount() public {
@@ -63,7 +61,7 @@ contract MinimalAccountTest is Test {
                 address(minimalAccountFactory),
                 abi.encodeWithSelector(minimalAccountFactory.createAccount.selector, address(this), 0)
                 ),
-            callData: abi.encode(address(this), 0, ""),
+            callData: abi.encodePacked(address(this), uint128(0), ""),
             callGasLimit: 0,
             verificationGasLimit: 0,
             preVerificationGas: 0,
@@ -100,7 +98,7 @@ contract MinimalAccountTest is Test {
                 address(minimalAccountFactory),
                 abi.encodeWithSelector(minimalAccountFactory.createAccount.selector, newOwner, 0)
                 ),
-            callData: abi.encode(address(this), 1 wei, ""),
+            callData: abi.encodePacked(address(this), uint128(1 wei), ""),
             callGasLimit: 0,
             verificationGasLimit: 0,
             preVerificationGas: 0,
@@ -132,7 +130,7 @@ contract MinimalAccountTest is Test {
                 address(minimalAccountFactory),
                 abi.encodeWithSelector(minimalAccountFactory.createAccount.selector, address(this), 0)
                 ),
-            callData: abi.encode(address(this), 0, ""),
+            callData: abi.encodePacked(address(this), uint128(0), ""),
             callGasLimit: 0,
             verificationGasLimit: 0,
             preVerificationGas: 0,
@@ -150,7 +148,7 @@ contract MinimalAccountTest is Test {
     function testExecuteValue() public {
         vm.startPrank(entrypointAddress);
         vm.deal(address(minimalAccount), 2 wei);
-        address(minimalAccount).call(abi.encode(address(0x69), 1 wei, ""));
+        address(minimalAccount).call(abi.encodePacked(address(0x69), uint128(1 wei), ""));
         assertEq(address(0x69).balance, 1 wei);
         assertEq(address(minimalAccount).balance, 1 wei);
         vm.stopPrank();
@@ -159,9 +157,9 @@ contract MinimalAccountTest is Test {
     function testExecuteCalldata() public {
         vm.startPrank(entrypointAddress);
         address(minimalAccount).call(
-            abi.encode(
+            abi.encodePacked(
                 address(0x69),
-                0,
+                uint128(0),
                 abi.encodeWithSignature("transfer(address,address,uint256)", address(0x123456), address(0xdeadbeef), 69)
             )
         );
@@ -172,9 +170,9 @@ contract MinimalAccountTest is Test {
         vm.startPrank(address(0x69));
         vm.expectRevert();
         address(minimalAccount).call(
-            abi.encode(
+            abi.encodePacked(
                 address(0x69),
-                0,
+                uint128(0),
                 abi.encodeWithSignature("transfer(address,address,uint256)", address(0x123456), address(0xdeadbeef), 69)
             )
         );

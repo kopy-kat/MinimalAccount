@@ -27,14 +27,16 @@
 
     0x00                        // [retSize]
     0x00                        // [retOffset, retSize]
-    0x60 calldataload           // [argSize, retOffset, retSize]
+    0x24 calldatasize sub       // [argSize, retOffset, retSize]
     dup1                        // [argSize, argSize, retOffset, retSize]
-    0x80                        // [offset, argSize, argSize, retOffset, retSize]
+    0x24                        // [offset, argSize, argSize, retOffset, retSize]
     0x00                        // [destOffset, offset, argSize, argSize, retOffset, retSize]
     calldatacopy                // [argSize, retOffset, retSize]
     0x00                        // [argOffset, argSize, retOffset, retSize]
-    0x20 calldataload           // [value, argOffset, argSize, retOffset, retSize]
+    0x14 calldataload           // [value, argOffset, argSize, retOffset, retSize]
+    0x80 shr
     0x00 calldataload           // [target, value, argOffset, argSize, retOffset, retSize]
+    0x60 shr
     gas                         // [gas, target, value, argOffset, argSize, retOffset, retSize]
     call                        // [success]
     stop

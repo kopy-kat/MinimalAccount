@@ -10,11 +10,11 @@ The most gas optimized ERC-4337 account - written in Huff
 >
 > The main usage of these contracts is to benchmark other ERC-4337 accounts against the lowest possible gas cost for an account.
 
-## Gas calculations (as of Sep 19, 2023)
+## Gas calculations (as of Sep 21, 2023)
 
 |                  | Creation | Native transfer | ERC20 transfer | Total  |
 | ---------------- | -------- | --------------- | -------------- | ------ |
-| MinimalAccount   | 221508   | 93430           | 82169          | 397107 |
+| MinimalAccount   | 222902   | 93254           | 81883          | 398039 |
 | SimpleAccount    | 410061   | 97690           | 86754          | 594505 |
 | Biconomy         | 296892   | 100780          | 89577          | 487249 |
 | Etherspot        | 305769   | 100091          | 89172          | 495032 |
@@ -26,7 +26,7 @@ Gas difference between MinimalAccount and cheapest account in each category:
 
 |               | Creation | Native transfer | ERC20 transfer | Total |
 | ------------- | -------- | --------------- | -------------- | ----- |
-| MA cheaper by | 35457    | 3901            | 3952           | 43310 |
+| MA cheaper by | 34063    | 4077            | 4238           | 42378 |
 
 Calculations are based on ZeroDev's [AA Benchmark](https://github.com/zerodevapp/aa-benchmark)
 
