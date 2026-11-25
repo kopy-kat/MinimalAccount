@@ -2,13 +2,22 @@
 
 # MinimalAccount
 
-The most gas optimized ERC-4337 account - written in Huff
+An ERC-4337 account written in Huff, to see how cheap one can get.
 
-> **Note**
->
-> These contracts are **unaudited** and are not recommended for use in production.
->
-> The main usage of these contracts is to benchmark other ERC-4337 accounts against the lowest possible gas cost for an account.
+A smart account is a wallet that is a contract instead of a private key. Huff is a low-level language where you write the EVM opcodes yourself.
+
+It has not been audited, so don't put funds in it. I use it as a baseline: when other accounts are benchmarked, it shows how far they are from the lowest cost I could get to.
+
+## Features
+
+- Only takes calls from the EntryPoint (v0.6)
+- Validates a user operation with one ECDSA signature from the owner and rejects malleable signatures
+- The owner's address is written into the bytecode by the factory, so the account has no storage and the owner can't change
+- Executes one call per user operation, from packed calldata (target, value, data) with no function selector
+- Pays the EntryPoint what it asks for during validation
+- Receives ETH
+- The factory deploys with CREATE2 and can return the address before deployment
+- The deployed account is 261 bytes
 
 ## Gas calculations (as of Sep 21, 2023)
 
@@ -32,38 +41,13 @@ Calculations are based on ZeroDev's [AA Benchmark](https://github.com/zerodevapp
 
 ## Using this repo
 
-1. Clone this repo
-
-```
-git clone https://github.com/kopy-kat/MinimalAccount.git
-cd MinimalAccount
-```
-
-2. Install dependencies
-
-Once you've cloned and entered into your repository, you need to install the necessary dependencies. In order to do so, simply run:
-
 ```shell
 forge install
-```
-
-3. Build & Test
-
-To build and test your contracts, you can run:
-
-```shell
 forge build
 forge test
 ```
 
-For more information on how to use Foundry, check out the [Foundry Github Repository](https://github.com/foundry-rs/foundry/tree/master/forge) and the [foundry-huff library repository](https://github.com/huff-language/foundry-huff).
-
-## Todo
-
-- [x] Dynamically splice owner account into bytecode
-- [x] Remove unnecessary jumps
-- [x] Upgrade to Solidity 0.8.20 and replace push1 0x00 with push0
-- [ ] Implement executeBatch
+It needs [Foundry](https://github.com/foundry-rs/foundry) and [foundry-huff](https://github.com/huff-language/foundry-huff).
 
 ## License
 
